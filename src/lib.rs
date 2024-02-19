@@ -12,11 +12,11 @@ pub mod seed;
 pub mod transform_ext;
 
 // Returns 4 shapes and their positions that will form the box.
-pub fn create_box(bounds: Rect, line_width: f32) -> Vec<(shape::Quad, Vec2)> {
+pub fn create_box(bounds: Rect, line_width: f32) -> Vec<(Rectangle, Vec2)> {
     let center = bounds.center();
     let mut box_shapes = Vec::with_capacity(4);
-    let side = shape::Quad::new(Vec2::new(line_width, bounds.height() + line_width));
-    let top_bottom = shape::Quad::new(Vec2::new(bounds.width() + line_width, line_width));
+    let side = Rectangle::new(line_width, bounds.height() + line_width);
+    let top_bottom = Rectangle::new(bounds.width() + line_width, line_width);
     for x_pos in [bounds.min.x, bounds.max.x] {
         box_shapes.push((side, Vec2::new(x_pos, center.y)));
     }
@@ -49,7 +49,7 @@ impl<T: Material2d> Command for SpawnBox<T> {
     fn apply(self, world: &mut World) {
         for (r, offset) in create_box(self.bounds, self.line_width) {
             let mesh = if let Some(mut meshes) = world.get_resource_mut::<Assets<Mesh>>() {
-                meshes.add(r.into()).into()
+                meshes.add(r).into()
             } else {
                 error!("Tried spawning box but could not get Assets<Mesh> resource");
                 return;
