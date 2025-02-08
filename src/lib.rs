@@ -1,9 +1,9 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    ecs::system::Command,
+    ecs::world::Command,
     prelude::*,
-    sprite::{Material2d, MaterialMesh2dBundle},
+    sprite::{Material2d, MeshMaterial2d},
 };
 
 pub mod modifier;
@@ -54,12 +54,11 @@ impl<T: Material2d> Command for SpawnBox<T> {
                 error!("Tried spawning box but could not get Assets<Mesh> resource");
                 return;
             };
-            world.spawn(MaterialMesh2dBundle {
-                material: self.material.clone(),
-                mesh,
-                transform: Transform::from_translation(self.center + offset.extend(0.0)),
-                ..default()
-            });
+            world.spawn((
+                MeshMaterial2d(self.material.clone()),
+                Mesh2d(mesh),
+                Transform::from_translation(self.center + offset.extend(0.0)),
+            ));
         }
     }
 }

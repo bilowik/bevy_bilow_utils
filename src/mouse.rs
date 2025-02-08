@@ -1,5 +1,7 @@
 use bevy::{input::touch::TouchPhase, prelude::*, utils::HashMap, window::PrimaryWindow};
 
+use bevy::render::camera::ViewportConversionError;
+
 #[derive(Default)]
 pub struct MouseCoordsPlugin;
 
@@ -106,7 +108,7 @@ fn update_mouse_world_coords(
     // then, ask bevy to convert into world coordinates, and truncate to discard Z
     if let Some(world_position) = window
         .cursor_position()
-        .and_then(|coords| screen_to_world_coords(coords, camera, camera_transform))
+        .and_then(|coords| screen_to_world_coords(coords, camera, camera_transform).ok())
     {
         mouse_world_coords.set_pos(world_position, window.cursor_position().unwrap());
     }
@@ -122,7 +124,7 @@ fn update_touch_world_coords(
     for touch_event in touch_events.read() {
         match touch_event.phase {
             TouchPhase::Started | TouchPhase::Moved => {
-                if let Some(pos) =
+                if let Ok(pos) =
                     screen_to_world_coords(touch_event.position, camera, camera_transform)
                 {
                     touch_tracker.touch(touch_event.id, pos);
@@ -139,7 +141,7 @@ pub fn screen_to_world_coords(
     coords: Vec2,
     camera: &Camera,
     camera_transform: &GlobalTransform,
-) -> Option<Vec2> {
+) -> Result<Vec2, ViewportConversionError> {
     camera
         .viewport_to_world(camera_transform, coords)
         .map(|ray| ray.origin.truncate())
