@@ -1,4 +1,7 @@
-use bevy::{input::touch::TouchPhase, prelude::*, utils::HashMap, window::PrimaryWindow};
+use bevy::{
+    input::touch::TouchPhase, platform::collections::hash_map::HashMap, prelude::*,
+    window::PrimaryWindow,
+};
 
 use bevy::render::camera::ViewportConversionError;
 
@@ -96,13 +99,13 @@ fn update_mouse_world_coords(
     q_window: Query<&Window, With<PrimaryWindow>>,
     // query to get camera transform
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-) {
+) -> bevy::ecs::error::Result {
     // get the camera info and transform
     // assuming there is exactly one main camera entity, so Query::single() is OK
-    let (camera, camera_transform) = q_camera.single();
+    let (camera, camera_transform) = q_camera.single()?;
 
     // There is only one primary window, so we can similarly get it from the query:
-    let window = q_window.single();
+    let window = q_window.single()?;
 
     // check if the cursor is inside the window and get its position
     // then, ask bevy to convert into world coordinates, and truncate to discard Z
@@ -112,14 +115,15 @@ fn update_mouse_world_coords(
     {
         mouse_world_coords.set_pos(world_position, window.cursor_position().unwrap());
     }
+    Ok(())
 }
 
 fn update_touch_world_coords(
     mut touch_events: EventReader<TouchInput>,
     mut touch_tracker: ResMut<TouchTracker>,
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-) {
-    let (camera, camera_transform) = q_camera.single();
+) -> bevy::ecs::error::Result {
+    let (camera, camera_transform) = q_camera.single()?;
 
     for touch_event in touch_events.read() {
         match touch_event.phase {
@@ -135,6 +139,8 @@ fn update_touch_world_coords(
             }
         }
     }
+
+    Ok(())
 }
 
 pub fn screen_to_world_coords(
